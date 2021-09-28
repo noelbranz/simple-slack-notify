@@ -3085,11 +3085,11 @@ try {
   // If text isn't set, check for status specific text
   if (!text) {
     if (status === 'success') {
-      text = successText || 'No success text specified.'
+      text = `[SUCCESS] ${successText}` || 'SUCCESS!'
     } else if (status === 'failure') {
-      text = failureText || 'No failure text specified.'
+      text = `[FAILED] ${failureText}` || 'FAILURE!'
     } else if (status === 'cancelled') {
-      text = cancelledText || 'No cancelled text specified.'
+      text = `[CANCELLED] ${cancelledText}` || 'CANCELLED!'
     }
   }
 
