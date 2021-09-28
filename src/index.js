@@ -11,6 +11,14 @@
 const core = require('@actions/core')
 const { IncomingWebhook } = require('@slack/webhook')
 
+const stepIcon = (status) => {
+  if (status.toLowerCase() === 'success') return ':heavy_check_mark:'
+  if (status.toLowerCase() === 'failure') return ':x:'
+  if (status.toLowerCase() === 'cancelled') return ':exclamation:'
+  if (status.toLowerCase() === 'skipped') return ':no_entry_sign:'
+  return `:grey_question: ${status}`
+}
+
 try {
   if (!process.env.SLACK_WEBHOOK_URL) {
     throw new Error('SLACK_WEBHOOK_URL is not set!')
@@ -29,6 +37,9 @@ try {
   const failureText = envsubst(core.getInput('failure_text'))
   const cancelledText = envsubst(core.getInput('cancelled_text'))
   const fields = JSON.parse(envsubst(core.getInput('fields')) || '[]')
+  const jobSteps = JSON.parse(
+    core.getInput('steps', { required: false }) || '{}'
+  )
 
   let color = envsubst(core.getInput('color'))
   let text = envsubst(core.getInput('text'))
@@ -52,6 +63,20 @@ try {
     } else if (status === 'cancelled') {
       text = cancelledText || 'No cancelled text specified.'
     }
+  }
+
+  // add job steps, if provided
+  const checks = []
+  for (const [step, status] of Object.entries(jobSteps)) {
+    checks.push(`${stepIcon(status.outcome)} ${step}`)
+  }
+
+  if (checks.length) {
+    fields.push({
+      title: 'Job Steps',
+      value: checks.join('\n'),
+      short: false
+    })
   }
 
   // Send the notification
